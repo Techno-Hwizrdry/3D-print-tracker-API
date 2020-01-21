@@ -1,2 +1,2 @@
-flask
-flaskext
+Flask
+flask-mysql
