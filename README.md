@@ -2,8 +2,12 @@
 A RESTful Python 3 / Flask API for tracking the history and print count of your 3D prints. 
 
 # Prerequisites
-This RESTful API requires python3, python3-pip, flask, and flaskext.  Since this document assumes that 3D Print Tracker API
-will run on your local machine (for development only), all 3 must be installed on your local machine before the API can be used.
+This RESTful API requires python3, python3-pip, flask, and flaskext.  Also, this Flask app uses MySQL.
+Therefore, you will need a MySQL to store and retrieve data.  The structure for this database (and both of
+it's tables) is included in this repo.
+
+Since this document assumes that 3D Print Tracker API will run on your local machine (for development only),
+all 3 must be installed on your local machine before the API can be used.
 
 The prerequisites can be installed on a Debian based linux machine, like so:
 
@@ -12,6 +16,13 @@ The prerequisites can be installed on a Debian based linux machine, like so:
 Then install the required python libraries by running this command:
 
 `pip3 install -r requirements.txt`
+
+Next, add the empty MySQL database schema to your mysql server:
+
+`mysql -h HOSTNAME -u username -p 3dprinttrackerdb < 3dprinttrackerdb.sql`
+
+Replace HOSTNAME with the host (or IP address) of your your MySQL server.  Also, replace username with a MySQL username that
+has permission to create a new database.
 
 # Quick Start
 To being handling API requests, via the Flask development server, run the following command from the 3D-print-tracker-API directory:
