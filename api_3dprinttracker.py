@@ -72,6 +72,8 @@ def home():
 @app.route('/files', methods=['GET'])
 def get_files():
     _3dprints = []
+    conn   = None
+    cursor = None
 
     try:
         conn   = mysql.connect()
@@ -88,14 +90,19 @@ def get_files():
     except Exception as e:
         traceback.print_exc(file=sys.stderr)
     finally:
-        cursor.close() 
-        conn.close()
-        
+        if cursor:
+            cursor.close()
+
+        if conn:
+            conn.close()
+
     return jsonify({'files': _3dprints})
 
 @app.route('/file/<string:filename>', methods=['GET'])
 def get_file(filename):
     file_data = {}
+    conn   = None
+    cursor = None
 
     try:
         conn   = mysql.connect()
@@ -111,14 +118,19 @@ def get_file(filename):
     except Exception as e:
         traceback.print_exc(file=sys.stderr)
     finally:
-        cursor.close()
-        conn.close()
+        if cursor:
+            cursor.close()
+
+        if conn:
+            conn.close()
 
     return jsonify({'file': file_data})
 
 @app.route('/file/latestprint', methods=['GET'])
 def get_latest_print():
     file_data = {}
+    conn   = None
+    cursor = None
 
     try:
         conn   = mysql.connect()
@@ -136,8 +148,11 @@ def get_latest_print():
     except Exception as e:
         traceback.print_exc(file=sys.stderr)
     finally:
-        cursor.close()
-        conn.close()
+        if cursor:
+            cursor.close()
+
+        if conn:
+            conn.close()
 
     return jsonify({'file': file_data})
 
@@ -156,6 +171,8 @@ def put_file():
 
     filename = request.json['filename']
     response = None
+    conn     = None
+    cursor   = None
 
     try:
         conn   = mysql.connect()
@@ -189,8 +206,11 @@ def put_file():
     except Exception as e:
         traceback.print_exc(file=sys.stderr)
     finally:
-        cursor.close()
-        conn.close()
+        if cursor:
+            cursor.close()
+
+        if conn:
+            conn.close()
 
     return response
 
