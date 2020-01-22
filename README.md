@@ -2,7 +2,7 @@
 A RESTful Python 3 / Flask API for tracking the history and print count of your 3D prints. 
 
 # Prerequisites
-This RESTful API requires python3, python3-pip, flask, and flaskext.  Also, this Flask app uses MySQL.
+This RESTful API requires python3 (version 3.6 or later), python3-pip, flask, and flaskext.  Also, this Flask app uses MySQL.
 Therefore, you will need a MySQL to store and retrieve data.  The structure for this database (and both of
 it's tables) is included in this repo.
 
