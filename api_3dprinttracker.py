@@ -4,7 +4,7 @@
 from   app       import app
 from   datetime  import datetime
 from   db_config import mysql
-from   flask     import abort, jsonify, request
+from   flask     import jsonify, request
 import sys
 import traceback
 
