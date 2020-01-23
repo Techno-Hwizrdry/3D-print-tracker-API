@@ -8,6 +8,8 @@ from   flask     import abort, jsonify, request
 import sys
 import traceback
 
+START_DATETIME_INDEX = 4
+
 def update_file_data(conn, cursor, filename):
     cursor.execute(f"SELECT id, print_count FROM 3dprints WHERE filename='{filename}'")
     file_data = cursor.fetchall()[0]
@@ -26,22 +28,13 @@ def add_datetime(conn, cursor, new_id_3dprint):
     cursor.execute(sql, data)
     conn.commit()
 
-def get_datetimes(cursor, id_3dprint=0):
-    START_DATETIME_INDEX = 2
-
-    sql = "SELECT * FROM print_datetimes"
-
-    if id_3dprint > 0:
-        sql += f" WHERE id_3dprint={id_3dprint}"
-
-    cursor.execute(sql)
-    rows_dt   = cursor.fetchall()
+def get_datetimes(file_data):
     datetimes = {}
 
-    for row in rows_dt:
-        id = row[1]
+    for row in file_data:
+        id = row[0]
 
-        # If a list of datetimes has not been created for id (i)
+        # If a list of datetimes has not been created for id
         # then initialize the list of datetimes with the first datetime.
         # Otherwise, append the new datetime to the list.
         try:
@@ -53,14 +46,14 @@ def get_datetimes(cursor, id_3dprint=0):
 
     return datetimes
 
-def create_file_data(data, dtime):
+def create_file_data(data, dtimes):
     id = data[0]
     file_data = {
         'id': id,
         'filename': data[1],
         'print_count': data[2],
         'print_time': data[3],
-        'datetimes_printed': dtime
+        'datetimes_printed': dtimes
     }
 
     return file_data
@@ -79,14 +72,21 @@ def get_files():
         conn   = mysql.connect()
         cursor = conn.cursor()
 
-        cursor.execute("SELECT * FROM 3dprints")
-        rows_3dprints = cursor.fetchall()
-        datetimes = get_datetimes(cursor)
+        sql = "SELECT p.*, d.start_datetime FROM 3dprints p INNER JOIN print_datetimes d ON p.id = d.id_3dprint"
+        cursor.execute(sql)
+        results = cursor.fetchall()
+        datetimes = get_datetimes(results)
 
-        for row in rows_3dprints:
-            id = row[0]
-            _3dprint = create_file_data(row, datetimes[id])
-            _3dprints.append(_3dprint)
+        for row in results:
+            # results will have multiple rows with the same id, filename, print_coint, and print_time,
+            # but different start_datetimes.  To avoid duplicate entries into _3dprints, check _3dprints
+            # if 'filename' already exists.  If it does not, then append the file data and it's datetimes to _3dprints.
+            filename_count = len(list(filter(lambda file_data: file_data['filename'] == row[1], _3dprints)))
+
+            if filename_count == 0:  # 'filename' does not exist in _3dprints.
+                id = row[0]
+                _3dprint = create_file_data(row, datetimes[id])
+                _3dprints.append(_3dprint)
     except Exception as e:
         traceback.print_exc(file=sys.stderr)
     finally:
@@ -108,13 +108,13 @@ def get_file(filename):
         conn   = mysql.connect()
         cursor = conn.cursor()
 
-        cursor.execute(f"SELECT * FROM 3dprints WHERE filename='{filename}'")
-        response = cursor.fetchall()[0]
-        id = response[0]
-        file_data = create_file_data(response, get_datetimes(cursor, id))
+        sql = f"SELECT p.*, d.start_datetime FROM 3dprints p INNER JOIN print_datetimes d ON p.id = d.id_3dprint WHERE p.filename='{filename}'"
+        cursor.execute(sql)
+        response = cursor.fetchall()
+        file_data = create_file_data(response[0], get_datetimes(response))
 
     except IndexError:
-        abort(404)
+        abort(404)  # File not found.
     except Exception as e:
         traceback.print_exc(file=sys.stderr)
     finally:
@@ -136,13 +136,10 @@ def get_latest_print():
         conn   = mysql.connect()
         cursor = conn.cursor()
 
-        cursor.execute("SELECT id_3dprint FROM print_datetimes ORDER BY start_datetime DESC LIMIT 0, 1")
-        dtime = cursor.fetchall()[0]
-        id = dtime[0]
-
-        cursor.execute(f"SELECT * FROM 3dprints WHERE id='{id}'")
+        sql = "SELECT p.*, d.start_datetime FROM 3dprints p INNER JOIN print_datetimes d ON p.id = d.id_3dprint ORDER BY start_datetime DESC LIMIT 0, 1"
+        cursor.execute(sql)
         response  = cursor.fetchall()[0]
-        file_data = create_file_data(response, get_datetimes(cursor, id))
+        file_data = create_file_data(response, response[START_DATETIME_INDEX])
     except IndexError:
         pass   # There are no records in the 3dprints table. An empty JSON object will be returned. 
     except Exception as e:
