@@ -24,6 +24,11 @@ Next, add the empty MySQL database schema to your mysql server:
 Replace HOSTNAME with the host (or IP address) of your your MySQL server.  Also, replace username with a MySQL username that
 has permission to create a new database.
 
+# Database connection configuration
+Before using this API, you will need to configure a file called db.conf.
+This file is read by `db_config.py` to give this application the necessary MySQL database connection parameters.
+See `db.conf_example` for an example config file.
+
 # Quick Start
 To being handling API requests, via the Flask development server, run the following command from the 3D-print-tracker-API directory:
 

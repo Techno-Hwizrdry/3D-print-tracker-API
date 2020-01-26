@@ -1,35 +1,27 @@
 # Author:  Alexan Mardigian
-# Version: 0.1
+# Version: 0.2
 
 # This python script will handle all the MySQL configurations.
+# The configuration parameters are stored in the file, CONFIG_FILE_PATH.
 
 from app import app
 from flaskext.mysql import MySQL
 
+import configparser
 import sys
 
-PW_FILE_PATH = './mysqluser_pw.txt'
+CONFIG_FILE_PATH = './db.conf'
+DB_SECTION = 'mysql'
 
-def get_dbuser_password(file_path):
-    dbuser_password = ""
+config = configparser.ConfigParser()
 
-    try:
-        with open(file_path) as password_file:
-            dbuser_password = password_file.readline().strip()
-    except IOError:
-        print(f"\nCould not read file: {file_path}", file=sys.stderr)
-        print("Check if the file path is valid, and try again.\n", file=sys.stderr)
+if not config.read(CONFIG_FILE_PATH):
+    raise FileNotFoundError(f"Could not find the database config file: {CONFIG_FILE_PATH}")
 
-    return dbuser_password
+for key in dict(config.items(DB_SECTION)).keys():
+    app.config[key.upper()] = config.getint('mysql', key) if key.upper() == 'MYSQL_DATABASE_PORT' else config['mysql'][key]
 
-
-mysql = MySQL()
-
-app.config['MYSQL_DATABASE_USER'] = '3dprintertracker_user'
-app.config['MYSQL_DATABASE_PASSWORD'] = get_dbuser_password(PW_FILE_PATH)
-app.config['MYSQL_DATABASE_DB'] = '3dprinttrackerdb'
-app.config['MYSQL_DATABASE_HOST'] = 'localhost'
-app.config['MYSQL_DATABASE_PORT'] = 3306
 app.config['MYSQL_DATABASE_SOCKET'] = None
 
+mysql = MySQL()
 mysql.init_app(app)
