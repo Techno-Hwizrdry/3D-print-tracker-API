@@ -19,7 +19,7 @@ if not config.read(CONFIG_FILE_PATH):
     raise FileNotFoundError(f"Could not find the database config file: {CONFIG_FILE_PATH}")
 
 for key in dict(config.items(DB_SECTION)).keys():
-    app.config[key.upper()] = config.getint('mysql', key) if key.upper() == 'MYSQL_DATABASE_PORT' else config['mysql'][key]
+    app.config[key.upper()] = config.getint(DB_SECTION, key) if key.upper() == 'MYSQL_DATABASE_PORT' else config[DB_SECTION][key]
 
 app.config['MYSQL_DATABASE_SOCKET'] = None
 
